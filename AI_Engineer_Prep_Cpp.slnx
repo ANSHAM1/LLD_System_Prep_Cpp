@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="AI_Engineer_Prep_Cpp.vcxproj" Id="e8a9aa5e-313f-4c95-8c9a-d2742616fc31" />
+</Solution>
