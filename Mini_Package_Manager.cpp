@@ -24,8 +24,8 @@
 #include<stdexcept>
 #include<memory>
 #include<string>
-#include<unordered_map>
 #include<unordered_set>
+#include<unordered_map>
 
 inline static void hash_combine(std::size_t& seed, std::size_t value) {
 	seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
@@ -33,7 +33,7 @@ inline static void hash_combine(std::size_t& seed, std::size_t value) {
 
 class Package {
 private:
-	std::vector<std::string> Dependencies;
+	std::vector<std::shared_ptr<Package>> Dependencies;
 
 	std::string Name;
 
@@ -44,18 +44,11 @@ public:
 
 	Package(std::string name, std::size_t version, std::size_t size_mb) :
 		Name(name), Version(version), SizeMB(size_mb) {
-		this->Dependencies = {};
+		Dependencies = {};
 	}
-
-	Package(std::string name, std::size_t version, std::size_t size_mb, std::vector<std::string>& dep) :
-		Name(name), Version(version), SizeMB(size_mb), Dependencies(dep) {}
 
 	bool operator==(const Package& other) const {
 		return this->Name == other.Name;
-	}
-
-	bool operator==(const std::string& pkg_name) const {
-		return this->Name == pkg_name;
 	}
 
 	std::string name() const {
@@ -68,10 +61,6 @@ public:
 
 	std::size_t size() const {
 		return this->SizeMB;
-	}
-
-	const std::vector<std::string>& dependencies() const {
-		return this->Dependencies;
 	}
 };
 
@@ -90,37 +79,53 @@ namespace std {
 
 class PacMan {
 private:
-	std::unordered_map<std::shared_ptr<Package>, std::unordered_set<std::shared_ptr<Package>>> PacGraph;
+	std::unordered_map<std::shared_ptr<Package>, std::vector<std::shared_ptr<Package>>> PacGraph;
+
 	std::unordered_set<std::shared_ptr<Package>> Packages;
+	std::unordered_map<std::string, std::vector<std::string>> Deps;
+
 
 public:
-	PacMan() : PacGraph({}), Packages({}) {}
+	PacMan() : PacGraph({}), Packages({}), Deps({}) {};
 
-	PacMan(std::string& pkgs) {
+	void insert_packages_input(std::string& packages) {
 		Packages.clear();
-		// ----
+		Deps.clear();
+
+
 	}
 
-	bool install_package(const std::shared_ptr<Package>& pkg) {
-		auto itr = this->PacGraph.find(pkg);
+	void install_package(const std::shared_ptr<Package>& pkg) {
+		std::shared_ptr<Package> pkg_lock = pkg;
+
+		auto itr = this->PacGraph.find(pkg_lock);
+		if (itr != this->PacGraph.end()) this->PacGraph.erase(itr);
+
+		auto itr = this->PacGraph.find(pkg_lock);
 		if (itr != this->PacGraph.end() && itr->first.get()->version() >= pkg.get()->version()) {
 			std::cout << "Package conflict: identical or newer version already exists." << std::endl;
-			return true;
+		}
+		else if (itr != this->PacGraph.end() && itr->first.get()->version() < pkg.get()->version()) {
+			std::cout << "Package " << pkg.get()->name() << " version update : from"<< itr->first.get()->version() << " to " << pkg.get()->version() << std::endl;
+			this->PacGraph[pkg] = itr->second;
+			this->PacGraph.erase(itr->first);
+
+			std::cout << "version updated successfully" << std::endl;
 		}
 		else {
-			std::cout << "Installing Package and its Dependencies" << std::endl;
-			auto& idep = itr->first->dependencies();
-			for (auto& dep : pkg.get()->dependencies()) {
-				auto& dep_itr = this->Packages.find(dep);
-				if (dep.find() != this->PacGraph.end() && itr->first.get()->version() >= PKG.get()->version()) {
-					std::cout << "Package conflict: identical or newer version already exists." << std::endl;
-					return true;
-				}
-				std::shared_ptr<Package> PKG_D = std::make_shared<Package>(new Package(dep_vec[0], dep_vec[1], dep_vec[]));
+			this->PacGraph[pkg] = {};
+			for (auto& deps : this->Deps[pkg.get()->name()]) {
+
 				this->install_package()
 			}
-			this->PacGraph[pkg] = {};
+			std::cout << "Package installed successfully : " << pkg.get()->name() << std::endl;
 		}
+	}
+
+	bool uninstall_package(const std::string& pkg_name, bool force = false) {
+		std::cout << "uninstalling package : " << pkg_name << std::endl;
+
+		std::cout << "package uninstalled successfully " << pkg_name << std::endl;
 	}
 
 	const std::vector<std::string> read_package(const std::string& pkg) {
