@@ -26,7 +26,7 @@
 #include <unordered_map>
 
 namespace emp {
-    struct EmployeeID { 
+    struct EmployeeID {
         int id;
 
         bool operator==(const EmployeeID& other) const {

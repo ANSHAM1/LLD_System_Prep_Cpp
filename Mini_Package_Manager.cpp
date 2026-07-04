@@ -19,6 +19,12 @@
 //PACKAGE | fastapi | 1.2 | 10 | python |
 //PACKAGE | myapp | 1.0 | 12 | torch, opencv, fastapi |
 
+//Assumptions
+//✅ Every dependency exists.
+//✅ No cyclic dependencies.
+//✅ Package names are unique.
+//✅ Input format is valid.
+
 #include<iostream>
 #include<string>
 #include<vector>
@@ -90,16 +96,23 @@ class PacMan {
 private:
 	std::unordered_map<Package, std::vector<Package>> PacGraph;
 
-	bool checkDependency(std::string pkg) {
+	std::vector<std::string> getDependent(std::string pkgName) {
+		std::vector<std::string> deps;
 
-		// ------------------
-		return 0;
+		for (auto& pair : PacGraph) 
+			for (auto& dep : pair.second) 
+				if (dep.Name == pkgName) {
+					deps.push_back(pair.first.Name);
+					break;
+				}
+		
+		return deps;
 	}
 
 	bool install_package(const std::unordered_map<std::string, std::vector<std::string>>& tempRel, const std::string& pkg) {
 		std::string pkgName = lower(pkg);
 
-		if (this->PacGraph.find(pkgName) != this->PacGraph.end()) return 1;
+		if (this->PacGraph.find(Package(pkgName)) != this->PacGraph.end()) return 1;
 
 		auto it = tempRel.find(pkgName);
 		if (it == tempRel.end() || it->second.size() < 2) return 0;
@@ -111,7 +124,8 @@ private:
 			bool isInstalled = install_package(tempRel, it->second[i]);
 			if (!isInstalled) return 0;
 			
-			deps.push_back(this->PacGraph.find(it->second[i])->first);
+			if (this->PacGraph.find(Package(it->second[i])) == this->PacGraph.end()) return 0;
+			deps.push_back(this->PacGraph.find(Package(it->second[i]))->first);
 		}
 
 		this->PacGraph[new_pkg] = deps;
@@ -131,16 +145,20 @@ public:
 			std::vector<std::string> tokens;
 			split(tokens, line, '|');
 
-			if (tokens.size() != 4 || tokens[1].size() == 0 || tokens[2].size() == 0 || tokens[3].size() == 0) continue;
+			if (tokens.size() < 4 || tokens[1].size() == 0 || tokens[2].size() == 0 || tokens[3].size() == 0) continue;
 
 			std::vector<std::string> filtered = {tokens[2], tokens[3]};
 
+			if (tokens.size() == 4) {
+				tempRel[lower(tokens[1])] = filtered;
+				continue;
+			}
 			std::vector<std::string> dep;
 			split(dep, tokens[4], ',');
 
-			if (dep.size() != 0) {
-				for (auto& d : dep) {
-					if (d.size() == 0) continue;
+			for (auto& d : dep) {
+				d = strip(d);
+				if (!d.empty()) {
 					filtered.push_back(lower(d));
 				}
 			}
@@ -149,8 +167,9 @@ public:
 
 		for (auto& pkg : tempRel) {
 			if (this->PacGraph.find(Package(pkg.first)) != this->PacGraph.end()) continue;
+
 			bool isInstalled = install_package(tempRel, pkg.first);
-			if(isInstalled) std::cout << "Package : " << pkg.first << "Installed Successfully" << std::endl;
+			if(isInstalled) std::cout << "Package : " << pkg.first << " Installed Successfully" << std::endl;
 			else std::cout << "Package Installation Error: " << pkg.first << " -> Missing Dependencies" << std::endl;
 		}
 	}
@@ -158,30 +177,44 @@ public:
 	bool uninstall(std::string pkg, bool force = false) {
 		std::string pkgName = lower(pkg);
 
-		auto it = this->PacGraph.find(pkgName);
+		auto it = this->PacGraph.find(Package(pkgName));
 		if (it == this->PacGraph.end()) {
 			std::cout << "Package : " << pkgName << " not found" << std::endl;
-			return 0;
+			return 1;
 		}
 
-		bool canUninstall = checkDependency(pkgName);
-		if (!canUninstall && !force) {
+		std::vector<std::string> dependents = getDependent(pkgName);
+		if (dependents.size() == 0) {
+			this->PacGraph.erase(it->first);
+			std::cout << "Package : " << pkgName << " Uninstalled Successfully" << std::endl;
+			return 1;
+		}
+		else if (!force) {
 			std::cout << "Package Unistallation Error: " << pkgName << " -> Other Packages are Dependent on it" << std::endl;
 			return 0;
 		}
+		else {
+			bool allUninstalled = true;
+			for (auto& dep : dependents) {
+				bool isUninstalled = uninstall(dep, force);
+				if (!isUninstalled) allUninstalled = false;
+			}
+			if (!allUninstalled) return 0;
 
-		bool isUninstalled = true;
-		for (auto& dep : it->second) {
-			isUninstalled = uninstall(dep.Name, force);
+			this->PacGraph.erase(it->first);
+			std::cout << "Package : " << pkgName << " Uninstalled Successfully" << std::endl;
+			return 1;
 		}
+	}
 
-		if (isUninstalled) std::cout << "Package : " << pkgName << "Uninstalled Successfully" << std::endl;
-		else std::cout << "Package Unistallation Error: " << pkgName << " -> Other Packages are Dependent on it" << std::endl;
+	void show_packages() {
+		return;
 	}
 };
 
 int main() {
 	std::string input = R"(
+						PACKAGE | python | 3.1 | 60 | 
 						PACKAGE | numpy | 2.0 | 45 | python |
 						PACKAGE | opencv | 4.10 | 180 | numpy |
 						PACKAGE | torch | 2.7 | 820 | numpy |
@@ -191,4 +224,7 @@ int main() {
 
 	PacMan PM;
 	PM.install_packages(input);
+	PM.uninstall("numpy", 1);
+
+	PM.show_packages();
 }
