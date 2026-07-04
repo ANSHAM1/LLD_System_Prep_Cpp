@@ -24,6 +24,7 @@
 #include<vector>
 #include<sstream>
 #include<unordered_map>
+#include<algorithm>
 
 static std::string strip(std::string s) {
 	auto first = s.find_first_not_of(" \t\n\r\f\v");
@@ -52,6 +53,11 @@ static void split(std::vector<std::string>& results, std::string s) {
 	while (std::getline(iss, token)) {
 		results.push_back(strip(token));
 	}
+}
+
+static std::string lower(std::string std) {
+	std::transform(std.begin(), std.end(), std.begin(), [](unsigned char c) { return std::tolower(c); });
+	return std;
 }
 
 struct Package {
@@ -84,8 +90,36 @@ class PacMan {
 private:
 	std::unordered_map<Package, std::vector<Package>> PacGraph;
 
+	bool checkDependency(std::string pkg) {
+
+		// ------------------
+		return 0;
+	}
+
+	bool install_package(const std::unordered_map<std::string, std::vector<std::string>>& tempRel, const std::string& pkg) {
+		std::string pkgName = lower(pkg);
+
+		if (this->PacGraph.find(pkgName) != this->PacGraph.end()) return 1;
+
+		auto it = tempRel.find(pkgName);
+		if (it == tempRel.end() || it->second.size() < 2) return 0;
+
+		Package new_pkg(pkgName, std::stof(it->second[0]), std::stof(it->second[1]));
+
+		std::vector<Package> deps;
+		for (size_t i = 2; i < it->second.size(); ++i) {
+			bool isInstalled = install_package(tempRel, it->second[i]);
+			if (!isInstalled) return 0;
+			
+			deps.push_back(this->PacGraph.find(it->second[i])->first);
+		}
+
+		this->PacGraph[new_pkg] = deps;
+		return 1;
+	}
+
 public:
-	void parse_input(std::string str) {
+	void install_packages(std::string str) {
 		std::unordered_map<std::string, std::vector<std::string>> tempRel;
 
 		std::vector<std::string> lines;
@@ -107,10 +141,10 @@ public:
 			if (dep.size() != 0) {
 				for (auto& d : dep) {
 					if (d.size() == 0) continue;
-					filtered.push_back(d);
+					filtered.push_back(lower(d));
 				}
 			}
-			tempRel[tokens[1]] = filtered;
+			tempRel[lower(tokens[1])] = filtered;
 		}
 
 		for (auto& pkg : tempRel) {
@@ -121,22 +155,28 @@ public:
 		}
 	}
 
-	bool install_package(const std::unordered_map<std::string, std::vector<std::string>>& tempRel, const std::string& pkgName) {
-		if (this->PacGraph.find(pkgName) != this->PacGraph.end()) return 1;
+	bool uninstall(std::string pkg, bool force = false) {
+		std::string pkgName = lower(pkg);
 
-		auto it = tempRel.find(pkgName);
-		if (it == tempRel.end() || it->second.size() < 2) return 0;
-
-		Package new_pkg(pkgName, std::stof(it->second[0]), std::stof(it->second[1]));
-
-		std::vector<Package> deps;
-		for (size_t i = 2; i < it->second.size(); ++i) {
-			bool isInstalled = install_package(tempRel, it->second[i]);
-			if (!isInstalled) return 0;
+		auto it = this->PacGraph.find(pkgName);
+		if (it == this->PacGraph.end()) {
+			std::cout << "Package : " << pkgName << " not found" << std::endl;
+			return 0;
 		}
 
-		this->PacGraph[new_pkg] = deps;
-		return 1;
+		bool canUninstall = checkDependency(pkgName);
+		if (!canUninstall && !force) {
+			std::cout << "Package Unistallation Error: " << pkgName << " -> Other Packages are Dependent on it" << std::endl;
+			return 0;
+		}
+
+		bool isUninstalled = true;
+		for (auto& dep : it->second) {
+			isUninstalled = uninstall(dep.Name, force);
+		}
+
+		if (isUninstalled) std::cout << "Package : " << pkgName << "Uninstalled Successfully" << std::endl;
+		else std::cout << "Package Unistallation Error: " << pkgName << " -> Other Packages are Dependent on it" << std::endl;
 	}
 };
 
@@ -150,5 +190,5 @@ int main() {
 							)";
 
 	PacMan PM;
-	PM.parse_input(input);
+	PM.install_packages(input);
 }
