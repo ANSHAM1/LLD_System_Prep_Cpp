@@ -197,19 +197,19 @@ public:
     }
 };
 
-int main() {
-    std::string emps = R"( 
-                EMP | 101 | Rahul | AI | 85000 | 3 | ChatBot, Vision | Python, C++, PyTorch
-                EMP | 102 | Ankit | Backend | 95000 | 5 | API, Database | C++, SQL, Docker
-                EMP | 103 | Rohit | AI | 120000 | 8 | Vision, NLP | Python, CUDA, TensorRT
-                EMP | 104 | Karan | Frontend | 65000 | 2 | Dashboard | React, JS, CSS
-                EMP | 105 | Priya | Backend | 90000 | 4 | API | C++, Redis, SQL
-                      )";
-
-    std::string oprs = R"(
-                SHOW ALL
-                      )";
-
-    Solution sol;
-    sol.output(emps, oprs);
-}
+//int main() {
+//    std::string emps = R"( 
+//                EMP | 101 | Rahul | AI | 85000 | 3 | ChatBot, Vision | Python, C++, PyTorch
+//                EMP | 102 | Ankit | Backend | 95000 | 5 | API, Database | C++, SQL, Docker
+//                EMP | 103 | Rohit | AI | 120000 | 8 | Vision, NLP | Python, CUDA, TensorRT
+//                EMP | 104 | Karan | Frontend | 65000 | 2 | Dashboard | React, JS, CSS
+//                EMP | 105 | Priya | Backend | 90000 | 4 | API | C++, Redis, SQL
+//                      )";
+//
+//    std::string oprs = R"(
+//                SHOW ALL
+//                      )";
+//
+//    Solution sol;
+//    sol.output(emps, oprs);
+//}
