@@ -18,6 +18,8 @@
 //Project1, Project2, ... |
 //Skill1, Skill2, ...
 
+export module Resource_Manager;
+
 #include <iostream>
 #include <list>
 #include <string>
@@ -78,7 +80,7 @@ namespace std {
     };
 }
 
-class Solution {
+export class Solution {
 private:
     std::unordered_map<emp::EmployeeID, emp::Employee> Employees;
     std::unordered_map<emp::EmployeeID, emp::Project> Projects;
@@ -196,20 +198,3 @@ public:
         }
     }
 };
-
-//int main() {
-//    std::string emps = R"( 
-//                EMP | 101 | Rahul | AI | 85000 | 3 | ChatBot, Vision | Python, C++, PyTorch
-//                EMP | 102 | Ankit | Backend | 95000 | 5 | API, Database | C++, SQL, Docker
-//                EMP | 103 | Rohit | AI | 120000 | 8 | Vision, NLP | Python, CUDA, TensorRT
-//                EMP | 104 | Karan | Frontend | 65000 | 2 | Dashboard | React, JS, CSS
-//                EMP | 105 | Priya | Backend | 90000 | 4 | API | C++, Redis, SQL
-//                      )";
-//
-//    std::string oprs = R"(
-//                SHOW ALL
-//                      )";
-//
-//    Solution sol;
-//    sol.output(emps, oprs);
-//}

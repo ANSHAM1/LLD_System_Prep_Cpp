@@ -25,6 +25,8 @@
 //✅ Package names are unique.
 //✅ Input format is valid.
 
+export module Mini_Package_Manager;
+
 #include<iostream>
 #include<string>
 #include<vector>
@@ -76,7 +78,8 @@ struct Package {
 	Package(std::string name) : Name(name) {}
 
 	Package(std::string name, float version, float size) :
-		Name(name), Version(version), SizeMB(size) {};
+		Name(name), Version(version), SizeMB(size) {
+	};
 
 	bool operator==(const Package& other) const {
 		return Name == other.Name;
@@ -92,20 +95,20 @@ namespace std {
 	};
 }
 
-class PacMan {
+export class PacMan {
 private:
 	std::unordered_map<Package, std::vector<Package>> PacGraph;
 
 	std::vector<std::string> getDependent(std::string pkgName) {
 		std::vector<std::string> deps;
 
-		for (auto& pair : PacGraph) 
-			for (auto& dep : pair.second) 
+		for (auto& pair : PacGraph)
+			for (auto& dep : pair.second)
 				if (dep.Name == pkgName) {
 					deps.push_back(pair.first.Name);
 					break;
 				}
-		
+
 		return deps;
 	}
 
@@ -123,7 +126,7 @@ private:
 		for (size_t i = 2; i < it->second.size(); ++i) {
 			bool isInstalled = install_package(tempRel, it->second[i]);
 			if (!isInstalled) return 0;
-			
+
 			if (this->PacGraph.find(Package(it->second[i])) == this->PacGraph.end()) return 0;
 			deps.push_back(this->PacGraph.find(Package(it->second[i]))->first);
 		}
@@ -147,7 +150,7 @@ public:
 
 			if (tokens.size() < 4 || tokens[1].size() == 0 || tokens[2].size() == 0 || tokens[3].size() == 0) continue;
 
-			std::vector<std::string> filtered = {tokens[2], tokens[3]};
+			std::vector<std::string> filtered = { tokens[2], tokens[3] };
 
 			if (tokens.size() == 4) {
 				tempRel[lower(tokens[1])] = filtered;
@@ -169,7 +172,7 @@ public:
 			if (this->PacGraph.find(Package(pkg.first)) != this->PacGraph.end()) continue;
 
 			bool isInstalled = install_package(tempRel, pkg.first);
-			if(isInstalled) std::cout << "Package : " << pkg.first << " Installed Successfully" << std::endl;
+			if (isInstalled) std::cout << "Package : " << pkg.first << " Installed Successfully" << std::endl;
 			else std::cout << "Package Installation Error: " << pkg.first << " -> Missing Dependencies" << std::endl;
 		}
 	}
@@ -211,20 +214,3 @@ public:
 		return;
 	}
 };
-
-int main() {
-	std::string input = R"(
-						PACKAGE | python | 3.1 | 60 | 
-						PACKAGE | numpy | 2.0 | 45 | python |
-						PACKAGE | opencv | 4.10 | 180 | numpy |
-						PACKAGE | torch | 2.7 | 820 | numpy |
-						PACKAGE | fastapi | 1.2 | 10 | python |
-						PACKAGE | myapp | 1.0 | 12 | torch, opencv, fastapi |
-							)";
-
-	PacMan PM;
-	PM.install_packages(input);
-	PM.uninstall("numpy", 1);
-
-	PM.show_packages();
-}
