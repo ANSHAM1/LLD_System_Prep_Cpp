@@ -142,6 +142,9 @@
     <ClCompile Include="AI_Engineer_Prep_Cpp.cpp" />
     <ClCompile Include="Mini_Package_Manager.ixx" />
     <ClCompile Include="Job_Scheduling_Engine.ixx" />
+    <ClCompile Include="RealTime_Notification_Delivery_Engine.ixx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Resource_Manager.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
